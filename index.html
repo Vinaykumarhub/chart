@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home - Firebase Chat</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="chatContainer">
+    <h2>Welcome to Firebase Chat</h2>
+    <div id="messages"></div>
+    <form id="messageForm">
+      <input type="text" id="messageInput" placeholder="Type your message..." required />
+      <button type="submit">Send</button>
+    </form>
+    <button id="logoutBtn">Logout</button>
+    <div>
+      <canvas id="chartCanvas"></canvas>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+    import { Chart } from "https://cdn.jsdelivr.net/npm/chart.js";
+
+    const firebaseConfig = {
+  apiKey: "AIzaSyC_gv6j6y9c1F08nEuEUtosDhzSHlHCS8E",
+  authDomain: "chart-app-3e58d.firebaseapp.com",
+  projectId: "chart-app-3e58d",
+  storageBucket: "chart-app-3e58d.firebasestorage.app",
+  messagingSenderId: "261304255159",
+  appId: "1:261304255159:web:a3e4b351ca6e0e1fc08332"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    const messagesContainer = document.getElementById("messages");
+    const messageInput = document.getElementById("messageInput");
+    const messageForm = document.getElementById("messageForm");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    // Logout User
+    logoutBtn.addEventListener('click', async () => {
+      await signOut(auth);
+      window.location.href = "login.html";  // Redirect to login page
+    });
+
+    // Load Messages
+    function loadMessages() {
+      const q = query(collection(db, "messages"), orderBy("createdAt"));
+      onSnapshot(q, (snapshot) => {
+        messagesContainer.innerHTML = "";
+        snapshot.forEach(doc => {
+          const msg = doc.data();
+          const div = document.createElement("div");
+          div.textContent = `${msg.username}: ${msg.text}`;
+          messagesContainer.appendChild(div);
+        });
+      });
+    }
+
+    // Send Message
+    messageForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const text = messageInput.value.trim();
+      if (text) {
+        const user = auth.currentUser;
+        await addDoc(collection(db, "messages"), {
+          text,
+          username: user.email,
+          createdAt: serverTimestamp(),
+        });
+        messageInput.value = "";
+      }
+    });
+
+    // Real-time Chart (Bar Chart showing messages per hour)
+    const chartCanvas = document.getElementById("chartCanvas");
+    const chart = new Chart(chartCanvas, {
+      type: 'bar',
+      data: {
+        labels: ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23"],
+        datasets: [{
+          label: 'Messages per Hour',
+          data: Array(24).fill(0),  // Initialize data with zero values
+          borderColor: 'rgb(75, 192, 192)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+
+    // Update Chart with real-time data
+    onSnapshot(collection(db, "messages"), (snapshot) => {
+      const messagesPerHour = Array(24).fill(0);
+      snapshot.forEach(doc => {
+        const createdAt = doc.data().createdAt?.seconds || 0;
+        const date = new Date(createdAt * 1000);  // Convert to JavaScript date
+        const hour = date.getHours();
+        messagesPerHour[hour]++;
+      });
+      chart.data.datasets[0].data = messagesPerHour;
+      chart.update();
+    });
+
+    loadMessages();
+  </script>
+</body>
+</html>
