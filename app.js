@@ -6,12 +6,12 @@ import { Chart } from "https://cdn.jsdelivr.net/npm/chart.js";
 
 // Firebase configuration (replace with your Firebase credentials)
 const firebaseConfig = {
-  apiKey: "AIzaSyC_gv6j6y9c1F08nEuEUtosDhzSHlHCS8E",
-  authDomain: "chart-app-3e58d.firebaseapp.com",
-  projectId: "chart-app-3e58d",
-  storageBucket: "chart-app-3e58d.firebasestorage.app",
-  messagingSenderId: "261304255159",
-  appId: "1:261304255159:web:a3e4b351ca6e0e1fc08332"
+  apiKey: "AIzaSyAKzBXE3CY9c55MFLWRUZ2ASyJhn7iwn7s",
+  authDomain: "fir-cloud-app-d197c.firebaseapp.com",
+  projectId: "fir-cloud-app-d197c",
+  storageBucket: "fir-cloud-app-d197c.firebasestorage.app",
+  messagingSenderId: "939894627878",
+  appId: "1:939894627878:web:2cc5a64c7be8d3c08490e7"
 };
 
 // Initialize Firebase
